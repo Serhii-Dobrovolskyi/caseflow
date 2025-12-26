@@ -1,0 +1,11 @@
+{
+  "name": "caseflow",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace apps/api & npm run dev --workspace apps/web",
+    "lint": "echo \"lint will be added later\""
+  }
+}
