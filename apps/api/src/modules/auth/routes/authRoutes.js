@@ -1,6 +1,11 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 
+const { loginSchema } = require("../schemas/authSchemas");
+const { signAccessToken } = require("../jwt");
+const { requireAuth } = require("../middleware/requireAuth");
+
+
 const { User } = require("../models/User");
 const { registerSchema } = require("../schemas/authSchemas");
 
@@ -44,6 +49,60 @@ router.post("/register", async (req, res) => {
     role: user.role,
     createdAt: user.createdAt
   });
+});
+
+router.post("/login", async (req, res) => {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "ValidationError",
+      details: parsed.error.flatten()
+    });
+  }
+
+  const { email, password } = parsed.data;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(401).json({
+      error: "InvalidCredentials",
+      message: "Email or password is incorrect"
+    });
+  }
+
+  const isValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isValid) {
+    return res.status(401).json({
+      error: "InvalidCredentials",
+      message: "Email or password is incorrect"
+    });
+  }
+
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    return res.status(500).json({
+      error: "ServerMisconfigured",
+      message: "JWT_SECRET is not set"
+    });
+  }
+
+  const token = signAccessToken(
+    { id: user._id.toString(), email: user.email, role: user.role },
+    secret
+  );
+
+  return res.json({
+    token,
+    user: {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role
+    }
+  });
+});
+
+router.get("/me", requireAuth, async (req, res) => {
+  return res.json({ user: req.user });
 });
 
 module.exports = router;
