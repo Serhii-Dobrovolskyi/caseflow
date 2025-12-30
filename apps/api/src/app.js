@@ -10,5 +10,15 @@ app.use("/health", healthRoute);
 const authRoutes = require("./modules/auth/routes/authRoutes");
 app.use("/auth", authRoutes);
 
+const { notFound } = require("./middleware/notFound");
+const { errorHandler } = require("./middleware/errorHandler");
+
+// 404 handler (after routes)
+app.use(notFound);
+
+// error handler (the last middleware)
+app.use(errorHandler);
+
+
 
 module.exports = app;

@@ -101,8 +101,28 @@ router.post("/login", async (req, res) => {
   });
 });
 
-router.get("/me", requireAuth, async (req, res) => {
-  return res.json({ user: req.user });
+router.get("/me", requireAuth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select("_id email role createdAt");
+    if (!user) {
+      return res.status(404).json({
+        error: "UserNotFound",
+        message: "User not found"
+      });
+    }
+
+    return res.json({
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (err) {
+    return next(err);
+  }
 });
+
 
 module.exports = router;
