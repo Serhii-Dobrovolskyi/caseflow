@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["admin", "manager", "user"],
       default: "user"
+    },
+    orgId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      required: true
     }
   },
   { timestamps: true }

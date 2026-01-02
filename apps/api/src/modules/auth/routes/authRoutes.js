@@ -1,5 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const { Organization } = require("../../org/models/Organization");
 
 const { loginSchema } = require("../schemas/authSchemas");
 const { signAccessToken } = require("../jwt");
@@ -36,19 +37,28 @@ router.post("/register", async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 10);
 
   // 4) create user
-  const user = await User.create({
-    email,
-    passwordHash,
-    role: "user"
-  });
+  const org = await Organization.create({
+  name: parsed.data.organizationName
+});
 
-  // 5) return safe response (without passwordHash)
-  return res.status(201).json({
-    id: user._id.toString(),
-    email: user.email,
-    role: user.role,
-    createdAt: user.createdAt
-  });
+  // 5) create user as admin in this org
+const user = await User.create({
+  email,
+  passwordHash,
+  role: "admin",
+  orgId: org._id
+});
+return res.status(201).json({
+  id: user._id.toString(),
+  email: user.email,
+  role: user.role,
+  orgId: user.orgId.toString(),
+  organization: {
+    id: org._id.toString(),
+    name: org.name
+  },
+  createdAt: user.createdAt
+});
 });
 
 router.post("/login", async (req, res) => {
