@@ -97,9 +97,14 @@ router.post("/login", async (req, res) => {
   }
 
   const token = signAccessToken(
-    { id: user._id.toString(), email: user.email, role: user.role },
-    secret
-  );
+  {
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+    orgId: user.orgId.toString()
+  },
+  secret
+);
 
   return res.json({
     token,

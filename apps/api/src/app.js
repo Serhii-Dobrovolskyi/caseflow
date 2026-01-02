@@ -10,6 +10,9 @@ app.use("/health", healthRoute);
 const authRoutes = require("./modules/auth/routes/authRoutes");
 app.use("/auth", authRoutes);
 
+const orgRoutes = require("./modules/org/routes/orgRoutes");
+app.use("/org", orgRoutes);
+
 const { notFound } = require("./middleware/notFound");
 const { errorHandler } = require("./middleware/errorHandler");
 
