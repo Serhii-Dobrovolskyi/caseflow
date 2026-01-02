@@ -10,6 +10,9 @@ app.use("/health", healthRoute);
 const authRoutes = require("./modules/auth/routes/authRoutes");
 app.use("/auth", authRoutes);
 
+const caseRoutes = require("./modules/cases/routes/caseRoutes");
+app.use("/cases", caseRoutes);
+
 const orgRoutes = require("./modules/org/routes/orgRoutes");
 app.use("/org", orgRoutes);
 
