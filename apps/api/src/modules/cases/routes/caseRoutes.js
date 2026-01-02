@@ -5,6 +5,9 @@ const { Case } = require("../models/Case");
 const { requireAuth } = require("../../auth/middleware/requireAuth");
 const { createCaseSchema, updateCaseSchema } = require("../schemas/caseSchemas");
 
+const { requireRole } = require("../../auth/middleware/requireRole");
+const { User } = require("../../auth/models/User");
+
 const router = express.Router();
 
 /**
@@ -55,6 +58,14 @@ router.get("/", requireAuth, async (req, res, next) => {
     const { status } = req.query;
 
     const filter = { orgId: req.user.orgId };
+
+   // if role is "user", only own cases
+   if (req.user.role === "user") {
+   filter.$or = [
+      { assignedTo: req.user.id },
+      { createdBy: req.user.id }
+   ];
+   }
     if (status && ["new", "in_progress", "blocked", "done"].includes(status)) {
       filter.status = status;
     }
@@ -168,10 +179,53 @@ router.patch("/:id", requireAuth, async (req, res, next) => {
   }
 });
 
+router.patch("/:id/assign", requireAuth, requireRole("admin", "manager"), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ error: "ValidationError", message: "Invalid case id" });
+    }
+
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ error: "ValidationError", message: "Invalid userId" });
+    }
+
+    // user must be in same org
+    const user = await User.findOne({ _id: userId, orgId: req.user.orgId }).select("_id email role");
+    if (!user) {
+      return res.status(404).json({ error: "UserNotFound", message: "User not found in your organization" });
+    }
+
+    const updated = await Case.findOneAndUpdate(
+      { _id: id, orgId: req.user.orgId },
+      { $set: { assignedTo: user._id } },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: "CaseNotFound", message: "Case not found" });
+    }
+
+    return res.json({
+      case: {
+        id: updated._id.toString(),
+        title: updated.title,
+        status: updated.status,
+        assignedTo: updated.assignedTo ? updated.assignedTo.toString() : null
+      }
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 /**
  * DELETE /cases/:id
  * Delete a case in current org
  */
+
 router.delete("/:id", requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
