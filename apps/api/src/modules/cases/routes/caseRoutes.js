@@ -10,10 +10,7 @@ const { User } = require("../../auth/models/User");
 
 const router = express.Router();
 
-/**
- * POST /cases
- * Create a case in current org
- */
+
 router.post("/", requireAuth, async (req, res, next) => {
   try {
     const parsed = createCaseSchema.safeParse(req.body);
@@ -48,11 +45,7 @@ router.post("/", requireAuth, async (req, res, next) => {
   }
 });
 
-/**
- * GET /cases
- * List cases in current org
- * Optional query: ?status=...  (new|in_progress|blocked|done)
- */
+
 router.get("/", requireAuth, async (req, res, next) => {
   try {
     const { status } = req.query;
@@ -89,10 +82,7 @@ router.get("/", requireAuth, async (req, res, next) => {
   }
 });
 
-/**
- * GET /cases/:id
- * Get one case (only if belongs to current org)
- */
+
 router.get("/:id", requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -128,10 +118,7 @@ router.get("/:id", requireAuth, async (req, res, next) => {
   }
 });
 
-/**
- * PATCH /cases/:id
- * Update a case in current org
- */
+
 router.patch("/:id", requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -221,10 +208,6 @@ router.patch("/:id/assign", requireAuth, requireRole("admin", "manager"), async 
   }
 });
 
-/**
- * DELETE /cases/:id
- * Delete a case in current org
- */
 
 router.delete("/:id", requireAuth, async (req, res, next) => {
   try {

@@ -16,6 +16,9 @@ app.use("/cases", caseRoutes);
 const orgRoutes = require("./modules/org/routes/orgRoutes");
 app.use("/org", orgRoutes);
 
+const taskRoutes = require("./modules/tasks/routes/taskRoutes");
+app.use("/", taskRoutes);
+
 const { notFound } = require("./middleware/notFound");
 const { errorHandler } = require("./middleware/errorHandler");
 
